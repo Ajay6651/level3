@@ -1,0 +1,223 @@
+from tkinter import *
+from PIL import ImageTk,Image
+import sqlite3 
+
+root=Tk() 
+root.title('information')
+root.geometry("400x400")
+
+conn=sqlite3.connect('Student_data.db') 
+c=conn.cursor()
+
+#c.execute("""CREATE TABLE data(name text,email text, contact Integer,id integer)""")
+#update btn function
+def update():
+  conn=sqlite3.connect('student_data.db')
+  c=conn.cursor()
+
+  record_id= delete_box.get()
+
+  c.execute("""UPDATE details SET
+
+  name= :name,
+  email= :email, 
+  contact= :contact,
+  id= :id 
+  
+  WHERE oid = :oid""",
+  {
+  'name':name_editor.get(),
+  'email':email_editor.get(),
+  'contact': contact_editor.get(),
+  'id':id_editor.get(),
+  'oid':record_id
+  })
+
+  
+  
+  
+  
+
+
+
+  conn.commit()
+  conn.close()
+
+  editor.destroy()
+
+
+
+
+#update/edit function
+
+def edit():
+  global editor
+  editor=Tk() 
+  editor.title('update detail')
+  editor.geometry("400x300")
+
+  conn=sqlite3.connect('student_data.db')
+  c=conn.cursor()
+
+  record_id= delete_box.get()
+
+  c.execute("SELECT * FROM details WHERE oid= "+ record_id)
+  rec=c.fetchall()
+  #make text box global
+  global name_editor
+  global email_editor
+  global contact_editor
+  global id_editor
+
+
+  #text box
+
+  name_editor=Entry(editor,width=30)   
+  name_editor.grid(row=0,column=1,padx=20,pady=(10,0)) 
+  email_editor=Entry(editor,width=30 )  
+  email_editor.grid(row=1,column=1)
+  contact_editor=Entry(editor,width=30 ) 
+  contact_editor.grid(row=2,column=1)
+  id_editor=Entry(editor,width=30 ) 
+  id_editor.grid(row=3,column=1)
+
+  #text label
+  name_label=Label(editor,text="Full Name")
+  name_label.grid(row=0, column=0,pady=(10,0)) 
+  email_label=Label(editor,text="EMAIL")
+  email_label.grid(row=1, column=0)
+  contact_label=Label(editor,text="contact")
+  contact_label.grid(row=2, column=0)
+  id_label=Label(editor,text="ID number")
+  id_label.grid(row=3, column=0)
+
+  for record in rec:
+    name_editor.insert(0,record[0])
+    email_editor.insert(0,record[1])
+    contact_editor.insert(0,record[2])
+    id_editor.insert(0,record[3])
+
+
+
+
+  #save button to update
+  save_btn = Button(editor, text="save detail", command=update)
+  save_btn.grid(row=4, column=0, columnspan=2, pady=10, padx=10, ipadx=134)
+
+#delete function
+def delete():
+  conn=sqlite3.connect('student_data.db')
+  c=conn.cursor 
+
+  #delete record
+  c.execute("DELETE from details WHERE oid="+ delete_box.get())
+
+
+  conn.commit()
+  conn.close()
+
+
+
+  
+
+
+
+
+#submit btn function
+
+def submit():
+
+  conn=sqlite3.connect('student_data.db')    
+  c=conn.cursor()
+
+
+  c.execute("INSERT INTO details VALUES (:name, :email, :contact,:id)",
+             {
+               'name' : name.get(),
+               'email' : email.get(),
+               'contact' : contact.get(),
+               'id':id.get()
+             })
+  conn.commit()
+  conn.close()
+  
+# Clear The Text Boxes
+
+  name.delete(0, END)
+  email.delete(0, END) 
+  contact.delete(0, END)
+  id.delete(0,END)
+
+#query function
+def query():
+  conn=sqlite3.connect('student_data.db')
+  c=conn.cursor()
+
+  c.execute("SELECT *,oid FROM details")
+  rec=c.fetchall() 
+#  print(rec)
+#loop
+  print_rec='' 
+  for record in rec:
+    print_rec += str(record) +"\n" 
+
+  
+  query_label=Label(root,text= print_rec)   
+  query_label.grid(row=11, column=0, columnspan=2)   
+
+
+
+
+
+  conn.commit()
+  conn.close()
+
+  
+
+#text box
+name=Entry(root,width=30 ) 
+name.grid(row=0,column=1,padx=20,pady= (10,0))
+email=Entry(root,width=30 ) 
+email.grid(row=1,column=1)
+contact=Entry(root,width=30 ) 
+contact.grid(row=2,column=1)
+id=Entry(root,width=30 ) 
+id.grid(row=3,column=1)
+
+delete_box = Entry(root, width=30)
+delete_box.grid(row=8, column=1,pady=5 )
+
+#textbox label
+
+name_label=Label(root,text="Full Name")
+name_label.grid(row=0, column=0,pady=(10,0)) 
+email_label=Label(root,text="EMAIL")
+email_label.grid(row=1, column=0)
+contact_label=Label(root,text="contact")
+contact_label.grid(row=2, column=0)
+id_label=Label(root,text="ID number")
+id_label.grid(row=3, column=0)
+
+delete_box_label = Label(root, text="detail number ")
+delete_box_label.grid(row=8, column=0,pady=5 )
+
+# submit buttons
+submit_btn=Button(root,text="Add details",command=submit) 
+submit_btn.grid(row=5, column=0, columnspan=2,pady=10,padx=10,ipadx=135)
+
+# Query button
+query_btn = Button(root, text="Show details", command=query)
+query_btn.grid(row=6, column=0, columnspan=2, pady=10, padx=10, ipadx=133)
+
+#delete button
+delete_btn = Button(root, text="delete detail", command=delete)
+delete_btn.grid(row=9, column=0, columnspan=2, pady=10, padx=10, ipadx=135)
+
+#update Button
+update_btn = Button(root, text="update detail", command=edit)
+update_btn.grid(row=10, column=0, columnspan=2, pady=10, padx=10, ipadx=134)
+
+
+conn.commit()
+conn.close()
+root.mainloop()
